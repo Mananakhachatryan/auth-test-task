@@ -10,15 +10,15 @@ import AuthProvider from "./context/authContext";
 import LoginContainer from "./containers/LoginContainer";
 import RegisterContainer from "./containers/RegisterContainer";
 import DashboardContainer from "./containers/DashboardContainer";
-import { AuthContext, getStorageContext } from "./context/authContext";
-import { AuthContextType } from "./context/auth";
+import { AuthContext } from "./context/authContext";
+import { getStorageContext } from "./context/authReducer";
+import { ISession } from "./context/auth";
 
-const PrivateRoute = () => {
-  const context = React.useContext(AuthContext) as AuthContextType;
+const PrivateRoute = ({ session }: { session: ISession | null }) => {
   const storageContext = getStorageContext();
   // If authorized, return an outlet that will render child elements
   // If not, return element that will navigate to login page
-  return !!context?.session || !!storageContext?.session ? (
+  return !!session || !!storageContext?.session ? (
     <Outlet />
   ) : (
     <Navigate to="/" />
@@ -26,13 +26,17 @@ const PrivateRoute = () => {
 };
 
 function App() {
+  const context = React.useContext(AuthContext);
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginContainer />} />
           <Route path="/register" element={<RegisterContainer />} />
-          <Route path="/" element={<PrivateRoute />}>
+          <Route
+            path="/"
+            element={<PrivateRoute session={context.state.auth.session} />}
+          >
             <Route path="/dashboard" element={<DashboardContainer />} />
           </Route>
         </Routes>

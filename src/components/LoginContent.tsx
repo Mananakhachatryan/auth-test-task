@@ -1,27 +1,26 @@
 // src/Login.tsx
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import Link from "@mui/material/Link";
 import { useNavigate } from "react-router-dom";
+import { ISession } from "../context/auth";
 
 type LoginProps = {
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => void;
+  session: ISession | null;
 };
 
-const Login: React.FC<LoginProps> = ({ login }) => {
+const Login: React.FC<LoginProps> = ({ login, session }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    const result = login(email, password);
-    if (result) {
+  useEffect(() => {
+    if (session) {
       navigate("/dashboard");
-    } else {
-      alert("Invalid Username or Password");
     }
-  };
+  }, [session, navigate]);
 
   return (
     <Box mt={5}>
@@ -50,7 +49,7 @@ const Login: React.FC<LoginProps> = ({ login }) => {
           variant="contained"
           color="primary"
           fullWidth
-          onClick={() => handleLogin()}
+          onClick={() => login(email, password)}
         >
           Login
         </Button>

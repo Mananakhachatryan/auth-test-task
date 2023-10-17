@@ -2,10 +2,18 @@ import React from "react";
 import { Container } from "@mui/material";
 import RegisterContent from "../components/RegisterContent";
 import { AuthContext } from "../context/authContext";
-import { AuthContextType } from "../context/auth";
+import { IUser } from "../context/auth";
+import { AuthTypes } from "../context/authReducer";
 
 const RegisterContainer: React.FC = () => {
-  const { createUser } = React.useContext(AuthContext) as AuthContextType;
+  const { dispatch } = React.useContext(AuthContext);
+
+  const createUser = (user: IUser) => {
+    dispatch({
+      type: AuthTypes.CREATE,
+      payload: user,
+    });
+  };
 
   return (
     <Container maxWidth="sm">

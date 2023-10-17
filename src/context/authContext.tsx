@@ -1,84 +1,41 @@
 import * as React from "react";
 import {
-  AuthContextType,
-  ISession,
-  IUser,
-  AuthContextStorageType,
-} from "./auth";
+  AuthState,
+  authReducer,
+  AuthActions,
+  getStorageContext,
+} from "./authReducer";
 
-export const AuthContext = React.createContext<AuthContextType | null>(null);
-
-export const CONTEXT_STORAGE_KEY = "auth";
-
-export const getStorageContext = () => {
-  const raw = localStorage.getItem(CONTEXT_STORAGE_KEY);
-  return raw ? (JSON.parse(raw) as AuthContextStorageType) : undefined;
+type InitialStateType = {
+  auth: AuthState;
 };
 
+const mainReducer = ({ auth }: InitialStateType, action: AuthActions) => ({
+  auth: authReducer(auth, action),
+});
+
+const initialState = () => {
+  return {
+    auth: getStorageContext() || {
+      users: [],
+      session: null,
+    },
+  } as InitialStateType;
+};
+
+export const AuthContext = React.createContext<{
+  state: InitialStateType;
+  dispatch: React.Dispatch<AuthActions>;
+}>({
+  state: initialState(),
+  dispatch: () => null,
+});
+
 const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [users, setUser] = React.useState<IUser[]>([]);
-  const [session, setSession] = React.useState<ISession | null>(null);
-
-  React.useEffect(() => {
-    const context = getStorageContext();
-
-    if (context) {
-      setUser(context.users);
-      setSession(context.session);
-    }
-  }, []);
-
-  const createUser = (user: IUser) => {
-    const newUsers = [...users, user];
-    const newSession = { email: user.email, expiredAt: getSessionExpireDate() };
-    setUser(newUsers);
-    setSession(newSession);
-
-    localStorage.setItem(
-      CONTEXT_STORAGE_KEY,
-      JSON.stringify({ users: newUsers, session: newSession })
-    );
-  };
-
-  const getSessionExpireDate = () => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + 1);
-    return date;
-  };
-
-  const login = (email: string, password: string): boolean => {
-    const findMatch = users.find(
-      (user) => user.email === email && user.password === password
-    );
-    if (findMatch) {
-      const newSession = {
-        email: findMatch.email,
-        expiredAt: getSessionExpireDate(),
-      };
-
-      setSession(newSession);
-
-      localStorage.setItem(
-        CONTEXT_STORAGE_KEY,
-        JSON.stringify({ users, session: newSession })
-      );
-
-      return true;
-    }
-
-    return false;
-  };
-
-  const logout = () => {
-    setSession(null);
-    localStorage.setItem(
-      CONTEXT_STORAGE_KEY,
-      JSON.stringify({ users, session: null })
-    );
-  };
+  const [state, dispatch] = React.useReducer(mainReducer, initialState());
 
   return (
-    <AuthContext.Provider value={{ users, session, createUser, login, logout }}>
+    <AuthContext.Provider value={{ state, dispatch }}>
       {children}
     </AuthContext.Provider>
   );

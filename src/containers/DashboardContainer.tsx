@@ -2,10 +2,18 @@ import React from "react";
 import { Container } from "@mui/material";
 import DashboardContent from "../components/DashboardContent";
 import { AuthContext } from "../context/authContext";
-import { AuthContextType } from "../context/auth";
+import { AuthTypes } from "../context/authReducer";
 
 const DashboardContainer: React.FC = () => {
-  const { logout } = React.useContext(AuthContext) as AuthContextType;
+  const { dispatch } = React.useContext(AuthContext);
+
+  const logout = () => {
+    dispatch({
+      type: AuthTypes.LOGOUT,
+      payload: {},
+    });
+  };
+
   return (
     <Container maxWidth="sm">
       <DashboardContent logout={logout} />
